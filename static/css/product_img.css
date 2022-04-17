@@ -1,0 +1,16 @@
+ul.thumb{
+    margin: 0 auto;
+    padding: 0;
+    float: left;
+}
+
+ul.thumb li{
+    list-style: none;
+    margin: 10px;
+}
+
+ul.thumb li  img{
+    height: 80px;
+    width: 80px;
+    border: 1px solid grey;
+}

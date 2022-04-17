@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<section class="section-content padding-y bg">
+<div class="container">
+
+<!-- ============================ COMPONENT 1 ================================= -->
+
+
+<div class="row">
+	<aside class="col-lg-8">
+<div class="card">
+  <h5 class="card-header">Billing Address</h5>
+  <div class="card-body">
+    <p class="card-text">{{order.full_name}}</p>
+    <p class="card-text">{{order.full_address}}</p>
+    <p class="card-text">{{order.city}}, {{order.state}}</p>
+    <p class="card-text">{{order.country}}</p>
+    <p class="card-text">{{order.email}}</p>
+    <p class="card-text">{{order.phone}}</p>
+	  {% if order.order_note %}
+	  	<b>Order Note: </b> {{order.order_note}}
+	  {% endif %}
+  </div>
+</div> <!-- card.// -->
+
+<div class="card">
+  <h5 class="card-header">Payment Method</h5>
+  <div class="card-body">
+    <p class="card-text">Paypal</p>
+  </div>
+</div> <!-- card.// -->
+
+<div class="card">
+  <h5 class="card-header">Review Products</h5>
+  <div class="card-body">
+   <table class="table table-borderless table-shopping-cart">
+                <thead class="text-muted">
+                <tr class="small text-uppercase">
+              <th scope="col">Product</th>
+              <th scope="col" width="120">Quantity</th>
+              <th scope="col" width="120">Price</th>
+            </tr>
+                </thead>
+                 <tbody>
+
+                {% for card_item in card_items %}
+                <tr>
+                    <td>
+                        <figure class="itemside align-items-center">
+                            <div class="aside"><img src="{{card_item.product.image.url}}" class="img-sm"></div>
+                            <figcaption class="info">
+                                <a href="{{card_item.product.get_url }}" class="title text-dark">{{card_item.product.product_name}}</a>
+                                {% if card_item.variations.all %}
+                                    {% for item in card_item.variations.all %}
+                                        {{item.variation_category|capfirst}}:{{item.variation_value|capfirst}} <br>
+                                    {% endfor %}
+                                {% endif %}
+                            </figcaption>
+                        </figure>
+                    </td>
+                    <td>
+                        <!-- col.// -->
+                                    <div class="col">
+                                            <label>{{card_item.quantity}}</label>
+                                    </div> <!-- col.// -->
+                    </td>
+                    <td>
+                        <div class="price-wrap">
+                            <var class="price">${{card_item.sub_total}}</var>
+                            <small class="text-muted"> ${{card_item.product.price}} each </small>
+                        </div> <!-- price-wrap .// -->
+                    </td>
+
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+  </div>
+</div> <!-- card.// -->
+
+	</aside> <!-- col.// -->
+	<aside class="col-lg-4">
+
+		<div class="card">
+		<div class="card-body">
+			<dl class="dlist-align">
+			  <dt>Total price:</dt>
+			  <dd class="text-right">{{total}}</dd>
+			</dl>
+			<dl class="dlist-align">
+			  <dt>Tax:</dt>
+			  <dd class="text-right">${{tax}}</dd>
+			</dl>
+			<dl class="dlist-align">
+			  <dt>Grand Total:</dt>
+			  <dd class="text-right text-dark b"><strong>${{grand_total}}</strong></dd>
+			</dl>
+			<hr>
+			<p class="text-center mb-3">
+				<img src="{% static './images/misc/payments.png' %}" height="26">
+			</p>
+                <div id="paypal-button-container">
+                    <!--Paypal button will load -->
+                </div>
+<script src="https://www.paypal.com/sdk/js?client-id=AZXA1IUHqv-Whxb1DKjDkHJXy7YmV8Io2bfVdcDPzHKxMIew_A7vGHrTwHLFqK6CHX2pAt6Xt0FJqPk5&currency=USD"></script>
+
+  <script>
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+  const csrftoken = getCookie('csrftoken');
+  var amount = "{{grand_total}}";
+  var payment_method = "paypal";
+  var url = "{% url 'payments' %}";
+  var redirect_url = "{% url 'order_complete' %}";
+  var orderID = "{{order.order_number}}"
+        // Render the PayPal button into #paypal-button-container
+        paypal.Buttons({
+
+
+            // Set up the transaction
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: amount
+                        }
+                    }]
+                });
+            },
+
+            // Finalize the transaction
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(orderData) {
+                    // Successful capture! For demo purposes:
+                    console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
+                    var transaction = orderData.purchase_units[0].payments.captures[0];
+                    console.log("orderData");
+                    //const myObj = JSON.parse(data);
+                    console.log(orderData.id);
+                     sendData();
+                   function sendData()
+                   {
+                        fetch(url, {
+                        method: "POST",
+                        headers:{
+                        "Content-type": "application/json",
+                        "X-CSRFToken": csrftoken,
+                        },
+                        body:JSON.stringify({
+                        orderID:orderID,
+                        transID: orderData.id,
+                        payment_method:payment_method,
+                        status: orderData.status,
+                         }),
+                       })
+                        .then((response) => response.json())
+                       .then((data) => {
+                       window.location.href = redirect_url + "?order_number="+data.order_number+"&payment_id="+data.transID;
+                       });
+
+                   }
+                });
+            }
+
+
+        }).render('#paypal-button-container');
+    </script>
+
+		</div> <!-- card-body.// -->
+		</div> <!-- card.// -->
+
+</aside> <!-- col.// -->
+
+
+</div> <!-- row.// -->
+<!-- ============================ COMPONENT 1 END .// ================================= -->
+
+</div> <!-- container .//  -->
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
+  
+{% endblock %}
+
+
