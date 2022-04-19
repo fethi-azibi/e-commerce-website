@@ -1,7 +1,18 @@
 # e-commerce-website
-the website is for learning purpose
-if you want to use the website for production purpose you HAVE TO buy the template from its owner
-to make the website work:
-install the requirements.txt
-migrate the database
-to use the email verification option go to settings and put your email and password to send email verification for users
+* the website is for learning purpose
+
+
+### Run the website
+* to make the website work:
+    * install the requirements.txt:
+       * ```pip install requirements.txt```
+    * migrate the database:
+        * ```python manage.py makemigrations```
+        * ```python manage.py migrate```
+    * if you to use the email verification option when a user want to create a new account or change his password:
+        * go to settings DJANGO_ECOMMERCE/greatkart/settings and put your email and password :
+         ![image](https://user-images.githubusercontent.com/101667256/163898789-58c51b03-3081-45c6-95db-3efca35012dc.png)
+    
+### License
+    
+* the website is for learning purpose, you cannot use it for production
